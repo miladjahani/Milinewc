@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MILICONFIG — Login</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .login-box {
+      width: 100%;
+      max-width: 400px;
+      padding: 36px;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-box glass">
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px; justify-content: center;">
+      <div class="brand-logo">M</div>
+      <h1 class="brand-text">MILICONFIG</h1>
+    </div>
+    <p style="color: var(--text-muted); font-size: 0.88rem; text-align: center; margin-bottom: 24px;">
+      Enterprise Proxy Infrastructure
+    </p>
+    <div id="login-error" style="display: none; color: var(--danger); background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger); padding: 10px; border-radius: 6px; font-size: 0.85rem; margin-bottom: 16px;"></div>
+    <form id="login-form">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" required autocomplete="username" autofocus>
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 8px;">
+        Sign In
+      </button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById("login-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const errBox = document.getElementById("login-error");
+      errBox.style.display = "none";
+      const u = document.getElementById("username").value;
+      const p = document.getElementById("password").value;
+      try {
+        const resp = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({username: u, password: p})
+        });
+        if (resp.ok) {
+          window.location.href = "/";
+        } else {
+          const data = await resp.json();
+          errBox.textContent = data.detail || "Authentication failed";
+          errBox.style.display = "block";
+        }
+      } catch (err) {
+        errBox.textContent = "Network error connecting to backend";
+        errBox.style.display = "block";
+      }
+    });
+  </script>
+</body>
+</html>

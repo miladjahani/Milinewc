@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MILICONFIG — Enterprise Infrastructure Panel</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <!-- Sidebar / Drawer -->
+  <aside id="sidebar" class="glass">
+    <div class="brand">
+      <div class="brand-logo">M</div>
+      <span class="brand-text">MILICONFIG</span>
+    </div>
+    <nav class="nav-menu">
+      <a class="nav-item active" data-tab="dashboard">📊 Dashboard</a>
+      <a class="nav-item" data-tab="users">👥 Users</a>
+      <a class="nav-item" data-tab="nodes">🌐 Nodes</a>
+      <a class="nav-item" data-tab="subscriptions">🔗 Subscriptions</a>
+      <a class="nav-item" data-tab="shadowsocks">🛡️ ShadowSocks</a>
+      <a class="nav-item" data-tab="proxyip">🔄 ProxyIP</a>
+      <a class="nav-item" data-tab="dns">⚡ DNS</a>
+      <a class="nav-item" data-tab="routing">🚦 Routing</a>
+      <a class="nav-item" data-tab="regions">🗺️ Regions</a>
+      <a class="nav-item" data-tab="traffic">📈 Traffic</a>
+      <a class="nav-item" data-tab="logs">📋 Logs</a>
+      <a class="nav-item" data-tab="settings">⚙️ System Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <span id="current-admin-user" style="font-size: 0.85rem; color: var(--text-muted);">Admin</span>
+      <button id="btn-logout" class="btn btn-secondary btn-sm">Logout</button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main id="main-content">
+    <header>
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <button class="mobile-menu-btn" id="mobile-toggle">☰</button>
+        <h2 id="section-title" style="font-size: 1.4rem; font-weight: 700;">Dashboard</h2>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <span class="badge badge-active" id="sys-status-badge">● Operational</span>
+      </div>
+    </header>
+
+    <!-- SECTION: DASHBOARD -->
+    <section id="tab-dashboard" class="tab-pane">
+      <div class="grid-cards">
+        <div class="card glass">
+          <span class="card-title">Total Users</span>
+          <span class="card-value" id="kpi-total-users">-</span>
+        </div>
+        <div class="card glass">
+          <span class="card-title">Active Users</span>
+          <span class="card-value" id="kpi-active-users">-</span>
+        </div>
+        <div class="card glass">
+          <span class="card-title">Nodes</span>
+          <span class="card-value" id="kpi-total-nodes">-</span>
+        </div>
+        <div class="card glass">
+          <span class="card-title">Healthy Nodes</span>
+          <span class="card-value" id="kpi-healthy-nodes">-</span>
+        </div>
+        <div class="card glass">
+          <span class="card-title">Active Sessions</span>
+          <span class="card-value" id="kpi-active-sessions">-</span>
+        </div>
+        <div class="card glass">
+          <span class="card-title">Total Upload</span>
+          <span class="card-value" id="kpi-total-upload">-</span>
+        </div>
+        <div class="card glass">
+          <span class="card-title">Total Download</span>
+          <span class="card-value" id="kpi-total-download">-</span>
+        </div>
+        <div class="card glass">
+          <span class="card-title">ShadowSocks Users</span>
+          <span class="card-value" id="kpi-ss-users">-</span>
+        </div>
+      </div>
+
+      <div class="glass" style="padding: 20px; margin-bottom: 24px;">
+        <h3 style="font-size: 1.1rem; margin-bottom: 12px;">Active Relay Sessions</h3>
+        <div class="table-container">
+          <table id="table-dashboard-sessions">
+            <thead>
+              <tr>
+                <th>Protocol</th>
+                <th>Client IP</th>
+                <th>User Agent</th>
+                <th>Connected At</th>
+                <th>Last Activity</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No active sessions</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: USERS -->
+    <section id="tab-users" class="tab-pane" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Manage user accounts, limits, credentials, and subscriptions.</p>
+        <button class="btn btn-primary" onclick="openModal('modal-add-user')">+ Add User</button>
+      </div>
+      <div class="glass table-container">
+        <table id="table-users">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Username</th>
+              <th>Display Name</th>
+              <th>Status</th>
+              <th>UUID</th>
+              <th>Traffic</th>
+              <th>Expires At</th>
+              <th>Last Seen</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="9" style="text-align: center; color: var(--text-muted);">Loading users...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SECTION: NODES -->
+    <section id="tab-nodes" class="tab-pane" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Manage proxies. All client-facing names start with <code>miliconfig</code>.</p>
+        <button class="btn btn-primary" onclick="openModal('modal-add-node')">+ Add Node</button>
+      </div>
+      <div class="glass table-container">
+        <table id="table-nodes">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Client Name</th>
+              <th>Protocol</th>
+              <th>Address:Port</th>
+              <th>Network</th>
+              <th>TLS</th>
+              <th>Region</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="9" style="text-align: center; color: var(--text-muted);">Loading nodes...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SECTION: SUBSCRIPTIONS -->
+    <section id="tab-subscriptions" class="tab-pane" style="display: none;">
+      <div class="glass" style="padding: 24px; max-width: 800px;">
+        <h3 style="margin-bottom: 14px;">Subscription Generator Hub</h3>
+        <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 20px;">
+          MILICONFIG automatically identifies connecting client User-Agents (Clash, Sing-box, V2RayNG, Shadowrocket, Surge, Loon, etc.) and delivers native formats with <code>miliconfig-</code> prefixed node names.
+        </p>
+        <div class="form-group">
+          <label>Select User to Preview Subscription</label>
+          <select id="sub-preview-user-select" onchange="updateSubPreview()"></select>
+        </div>
+        <div class="form-group">
+          <label>Public Subscription URL</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="sub-url-input" readonly style="flex: 1;">
+            <button class="btn btn-secondary" onclick="copySubUrl()">Copy Link</button>
+          </div>
+        </div>
+        <div style="margin-top: 18px; display: flex; gap: 10px; flex-wrap: wrap;">
+          <a id="btn-open-clash" class="btn btn-secondary btn-sm" target="_blank">Download Clash YAML</a>
+          <a id="btn-open-singbox" class="btn btn-secondary btn-sm" target="_blank">Download Sing-box JSON</a>
+          <a id="btn-open-base64" class="btn btn-secondary btn-sm" target="_blank">Raw Base64 Links</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: SHADOWSOCKS -->
+    <section id="tab-shadowsocks" class="tab-pane" style="display: none;">
+      <div class="glass" style="padding: 24px; max-width: 800px;">
+        <h3 style="margin-bottom: 14px;">🛡️ Real ShadowSocks AEAD Server</h3>
+        <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 20px;">
+          Native Python asyncio ShadowSocks engine with AEAD encryption (ChaCha20-Poly1305, AES-256-GCM, AES-128-GCM), supporting per-user credentials and real TCP/UDP relay.
+        </p>
+        <div class="table-container">
+          <table id="table-ss-creds">
+            <thead>
+              <tr>
+                <th>User ID</th>
+                <th>Username</th>
+                <th>Port</th>
+                <th>Cipher Method</th>
+                <th>Password</th>
+                <th>UDP</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Loading credentials...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: PROXYIP -->
+    <section id="tab-proxyip" class="tab-pane" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Manage ProxyIP pool and test round-trip socket latency.</p>
+        <button class="btn btn-primary" onclick="openModal('modal-add-proxyip')">+ Add ProxyIP</button>
+      </div>
+      <div class="glass table-container">
+        <table id="table-proxyips">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Address</th>
+              <th>Port</th>
+              <th>Region</th>
+              <th>Latency (ms)</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Loading ProxyIPs...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SECTION: DNS -->
+    <section id="tab-dns" class="tab-pane" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Configure DNS-over-HTTPS (DoH) and standard upstream DNS resolvers.</p>
+        <button class="btn btn-primary" onclick="openModal('modal-add-dns')">+ Add DNS Profile</button>
+      </div>
+      <div class="glass table-container">
+        <table id="table-dns">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Profile Name</th>
+              <th>Server URL / IP</th>
+              <th>Protocol</th>
+              <th>Default</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Loading DNS profiles...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SECTION: ROUTING -->
+    <section id="tab-routing" class="tab-pane" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Define granular traffic routing rules (domain patterns, CIDR, ports).</p>
+        <button class="btn btn-primary" onclick="openModal('modal-add-routing')">+ Add Rule</button>
+      </div>
+      <div class="glass table-container">
+        <table id="table-routing">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Rule Name</th>
+              <th>Domain Pattern</th>
+              <th>IP CIDR</th>
+              <th>Port</th>
+              <th>Outbound Action</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Loading routing rules...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SECTION: REGIONS -->
+    <section id="tab-regions" class="tab-pane" style="display: none;">
+      <div class="glass" style="padding: 24px;">
+        <h3 style="margin-bottom: 12px;">Active Service Regions</h3>
+        <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 20px;">
+          Available egress and ingress regions ported from original cfnew: US, SG, JP, HK, KR, DE, SE, NL, FI, GB, CF.
+        </p>
+        <div id="regions-grid" style="display: flex; flex-wrap: wrap; gap: 12px;">
+          <div class="glass" style="padding: 12px 18px;">🇺🇸 US (United States)</div>
+          <div class="glass" style="padding: 12px 18px;">🇭🇰 HK (Hong Kong)</div>
+          <div class="glass" style="padding: 12px 18px;">🇸🇬 SG (Singapore)</div>
+          <div class="glass" style="padding: 12px 18px;">🇯🇵 JP (Japan)</div>
+          <div class="glass" style="padding: 12px 18px;">🇰🇷 KR (South Korea)</div>
+          <div class="glass" style="padding: 12px 18px;">🇩🇪 DE (Germany)</div>
+          <div class="glass" style="padding: 12px 18px;">🇸🇪 SE (Sweden)</div>
+          <div class="glass" style="padding: 12px 18px;">🇳🇱 NL (Netherlands)</div>
+          <div class="glass" style="padding: 12px 18px;">🇫🇮 FI (Finland)</div>
+          <div class="glass" style="padding: 12px 18px;">🇬🇧 GB (United Kingdom)</div>
+          <div class="glass" style="padding: 12px 18px;">🌐 CF (Official Anycast)</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: TRAFFIC -->
+    <section id="tab-traffic" class="tab-pane" style="display: none;">
+      <div class="glass" style="padding: 24px;">
+        <h3 style="margin-bottom: 12px;">Real-Time Bandwidth & Usage Accounting</h3>
+        <p style="color: var(--text-muted); font-size: 0.88rem; margin-bottom: 20px;">
+          Accurate byte counters aggregated directly from active streaming connections. No synthetic or estimated values.
+        </p>
+        <div class="grid-cards">
+          <div class="card glass">
+            <span class="card-title">Accumulated Upload</span>
+            <span class="card-value" id="traffic-page-upload">0 B</span>
+          </div>
+          <div class="card glass">
+            <span class="card-title">Accumulated Download</span>
+            <span class="card-value" id="traffic-page-download">0 B</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: LOGS -->
+    <section id="tab-logs" class="tab-pane" style="display: none;">
+      <div class="glass table-container">
+        <table id="table-logs">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Event</th>
+              <th>IP</th>
+              <th>Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Loading logs...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SECTION: SETTINGS -->
+    <section id="tab-settings" class="tab-pane" style="display: none;">
+      <div class="glass" style="padding: 24px; max-width: 700px;">
+        <h3 style="margin-bottom: 14px;">System Parameters</h3>
+        <form id="form-settings" onsubmit="saveSettings(event)">
+          <div class="form-group">
+            <label>Public Base URL</label>
+            <input type="text" id="setting-public_base_url" placeholder="https://miliconfig.up.railway.app">
+          </div>
+          <div class="form-group">
+            <label>Default Domain / SNI</label>
+            <input type="text" id="setting-default_domain" placeholder="localhost">
+          </div>
+          <div class="form-group">
+            <label>Outbound Mode (qj)</label>
+            <select id="setting-outbound_mode">
+              <option value="">Default (Proxy first, fallback to Direct)</option>
+              <option value="no">Direct First, Proxy Fallback (no)</option>
+              <option value="only">Proxy Only, Strict Anti-Leak (only)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Default Upstream Proxy (s)</label>
+            <input type="text" id="setting-outbound_proxy" placeholder="socks5://user:pass@host:1080 or http://host:8080">
+          </div>
+          <div class="form-group">
+            <label>ECH Domain</label>
+            <input type="text" id="setting-ech_domain" placeholder="cloudflare-ech.com">
+          </div>
+          <div class="form-group">
+            <label>ALPN Negotiated List</label>
+            <input type="text" id="setting-alpn_list" placeholder="h3,h2,http/1.1">
+          </div>
+          <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Save Configuration</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modals -->
+  <!-- Modal: Add User -->
+  <div id="modal-add-user" class="modal-overlay">
+    <div class="modal-content glass">
+      <h3 style="margin-bottom: 16px;">Add New User</h3>
+      <form onsubmit="submitAddUser(event)">
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" id="new-user-username" required>
+        </div>
+        <div class="form-group">
+          <label>Display Name</label>
+          <input type="text" id="new-user-display" required>
+        </div>
+        <div class="form-group">
+          <label>Traffic Limit (Bytes, 0 for Unlimited)</label>
+          <input type="number" id="new-user-traffic" value="0">
+        </div>
+        <div class="form-group">
+          <label>Custom UUID (Optional, leave blank to auto-generate)</label>
+          <input type="text" id="new-user-uuid" placeholder="e.g. 12345678-1234-4234-8234-123456789012">
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-add-user')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create User</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Add Node -->
+  <div id="modal-add-node" class="modal-overlay">
+    <div class="modal-content glass">
+      <h3 style="margin-bottom: 16px;">Add New Node</h3>
+      <form onsubmit="submitAddNode(event)">
+        <div class="form-group">
+          <label>Node Name (Client name will automatically prefix with <code>miliconfig</code>)</label>
+          <input type="text" id="new-node-name" required placeholder="US Highspeed 01">
+        </div>
+        <div class="form-group">
+          <label>Protocol</label>
+          <select id="new-node-protocol">
+            <option value="vless">VLESS</option>
+            <option value="trojan">Trojan</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Address (Host or IP)</label>
+          <input type="text" id="new-node-address" required placeholder="127.0.0.1 or domain.com">
+        </div>
+        <div class="form-group">
+          <label>Port</label>
+          <input type="number" id="new-node-port" value="443" required>
+        </div>
+        <div class="form-group">
+          <label>Network</label>
+          <select id="new-node-network">
+            <option value="ws">WebSocket (ws)</option>
+            <option value="xhttp">xHTTP</option>
+            <option value="tcp">TCP</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>TLS Enabled</label>
+          <select id="new-node-tls">
+            <option value="1">Yes (TLS)</option>
+            <option value="0">No (Plaintext)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Region</label>
+          <input type="text" id="new-node-region" value="US">
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-add-node')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Node</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Add ProxyIP -->
+  <div id="modal-add-proxyip" class="modal-overlay">
+    <div class="modal-content glass">
+      <h3 style="margin-bottom: 16px;">Add ProxyIP</h3>
+      <form onsubmit="submitAddProxyIP(event)">
+        <div class="form-group">
+          <label>Address</label>
+          <input type="text" id="new-pip-address" required placeholder="104.16.0.1">
+        </div>
+        <div class="form-group">
+          <label>Port</label>
+          <input type="number" id="new-pip-port" value="443" required>
+        </div>
+        <div class="form-group">
+          <label>Region</label>
+          <input type="text" id="new-pip-region" value="CF" required>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-add-proxyip')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Add</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Add Routing Rule -->
+  <div id="modal-add-routing" class="modal-overlay">
+    <div class="modal-content glass">
+      <h3 style="margin-bottom: 16px;">Add Routing Rule</h3>
+      <form onsubmit="submitAddRouting(event)">
+        <div class="form-group">
+          <label>Rule Name</label>
+          <input type="text" id="new-route-name" required placeholder="Direct Domestic">
+        </div>
+        <div class="form-group">
+          <label>Domain Pattern</label>
+          <input type="text" id="new-route-domain" placeholder="*.ir or apple.com">
+        </div>
+        <div class="form-group">
+          <label>IP CIDR</label>
+          <input type="text" id="new-route-cidr" placeholder="10.0.0.0/8">
+        </div>
+        <div class="form-group">
+          <label>Outbound Action</label>
+          <select id="new-route-outbound">
+            <option value="direct">Direct</option>
+            <option value="proxy">Proxy</option>
+            <option value="reject">Reject</option>
+          </select>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-add-routing')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Rule</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Add DNS Profile -->
+  <div id="modal-add-dns" class="modal-overlay">
+    <div class="modal-content glass">
+      <h3 style="margin-bottom: 16px;">Add DNS Profile</h3>
+      <form onsubmit="submitAddDNS(event)">
+        <div class="form-group">
+          <label>Profile Name</label>
+          <input type="text" id="new-dns-name" required placeholder="Cloudflare DoH">
+        </div>
+        <div class="form-group">
+          <label>Server URL / IP</label>
+          <input type="text" id="new-dns-url" required placeholder="https://1.1.1.1/dns-query">
+        </div>
+        <div class="form-group">
+          <label>Protocol</label>
+          <select id="new-dns-protocol">
+            <option value="doh">DoH</option>
+            <option value="udp">UDP</option>
+            <option value="tcp">TCP</option>
+          </select>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px;">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-add-dns')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Profile</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container"></div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

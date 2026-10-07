@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  miliconfig:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: miliconfig-server
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+      - "8388:8388"
+      - "8388:8388/udp"
+    environment:
+      - PORT=8000
+      - DATABASE_URL=postgresql://miliconfig:miliconfig_secret@postgres:5432/miliconfig
+      - SECRET_KEY=miliconfig-production-secret-key-32-chars-long
+      - ADMIN_USERNAME=admin
+      - ADMIN_PASSWORD=miliconfig_admin_2026
+      - JWT_SECRET=miliconfig-jwt-secret-key-production-2026
+      - SUBSCRIPTION_SECRET=miliconfig-sub-secret-key-production-2026
+      - LOG_LEVEL=INFO
+      - PUBLIC_BASE_URL=http://localhost:8000
+      - DEFAULT_DOMAIN=localhost
+      - DEFAULT_PATH=/
+      - DNS_SERVERS=1.1.1.1,8.8.8.8,https://223.5.5.5/dns-query
+      - ENABLE_SHADOWSOCKS=true
+      - SS_PORT=8388
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - miliconfig_data:/home/miliconfig/data
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: miliconfig-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: miliconfig
+      POSTGRES_PASSWORD: miliconfig_secret
+      POSTGRES_DB: miliconfig
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U miliconfig"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  miliconfig_data:
+  postgres_data:
